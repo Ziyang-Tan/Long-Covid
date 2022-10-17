@@ -73,7 +73,7 @@ for (patient in c('LongCovid1', 'LongCovid2')){
 # chord diagram vb
 source('src/chord_plots.R')
 data_vb <- data %>% 
-  mutate(Vb = sub('\\*.*$', '', TCR_Beta_Delta_V_gene_Dominant))
+  mutate(V = sub('\\*.*$', '', TCR_Beta_Delta_V_gene_Dominant))
 for (patient in c('LongCovid1', 'LongCovid2')){
   for (sub_name in c('CD4T', 'CD8T', 'gdT', 'others')){
     fig_dir <- file.path('figures', patient)
@@ -95,6 +95,29 @@ for (patient in c('LongCovid1', 'LongCovid2')){
   }
 }
 
+
+data_va <- data %>% 
+  mutate(V = sub('\\*.*$', '', TCR_Alpha_Gamma_V_gene_Dominant))
+for (patient in c('LongCovid1', 'LongCovid2')){
+  for (sub_name in c('CD4T', 'CD8T', 'gdT', 'others')){
+    fig_dir <- file.path('figures', patient)
+    dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+    data_va_sub <- data_va %>% filter(cell_type == sub_name)
+    exp_id <- data_va_sub %>%
+      group_by(CDR3_concat, Sample_Name) %>%
+      summarise(clone_count = n()) %>%
+      ungroup() %>%
+      inner_join(clone_id_map, by='CDR3_concat') %>%
+      filter(clone_count > 2) %>% select(clone_id) %>% unlist()
+    data_va_sub <- data_va_sub %>% mutate(clone_id = if_else(clone_id %in% exp_id, paste0('TCR', clone_id), 'unique'))
+    
+    pdf(file = file.path(fig_dir, paste0(patient, '_va_chord_diagram_', sub_name, '.pdf')),
+        width = 20, height =10)
+    par(mfrow = c(2, 3))
+    lapply(sample_list[[patient]],function(x){clone_vb_chord_plot(data_va_sub, x)})
+    dev.off()
+  }
+}
 
 
 
