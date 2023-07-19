@@ -6,8 +6,8 @@ library(Seurat)
 library(SeuratDisk)
 library(sctransform)
 
-proj_id <- c('P27352_1001', 'P27352_1002')
-
+proj_id <- c('P27352_1001', 'P27352_1002', 'P27470_1001', 'P27470_1002', 'P27566_1001', 'P28564_1001', 'P28564_1002')
+#  
 # load
 source('src/load_BD_scTCR.R')
 glob_path <- '/Users/tan/OneDrive - KI.SE/TCR_processed_data/single cell'
@@ -61,14 +61,14 @@ df <- obj[[]] %>%
   mutate(cell_type = case_when(
     is_gdT ~ 'gdT', # should come first, or some gdT cells will be assigned into CD4T/CD8T, 
                     # since they are in those seurat clusters
-    seurat_clusters %in% c('0', '1', '5', '7', '8', '9') ~ 'CD4T',
-    seurat_clusters %in% c('3', '4', '6') ~ 'CD8T',
+    seurat_clusters %in% c('0', '1', '3', '6', '11', '12') ~ 'CD4T',
+    seurat_clusters %in% c('4', '5', '7', '8', '10') ~ 'CD8T',
     TRUE ~ 'others'
   )) %>%
   cbind(obj@reductions$umap[[]])
 ggplot(df, aes(x = UMAP_1, y = UMAP_2, color = cell_type)) +
-  geom_point()
-ggsave(filename = 'CD4_CD8_types.pdf')
+  geom_point(size=0.1)
+ggsave(filename = 'CD4_CD8_types.png')
 
 df %>% 
   select(unique_index, cell_type, UMAP_1, UMAP_2, seurat_clusters) %>%

@@ -4,10 +4,19 @@ library(circlize)
 
 
 clone_vb_chord_plot <- function(data_vb_sub, sample_name){
-  df <- data_vb_sub %>% 
-    filter(Sample_Name == sample_name) %>%
-    group_by(clone_id, V) %>%
-    tally()
+  if (sample_name != 'all'){
+    df <- data_vb_sub %>% 
+      filter(Sample_Name == sample_name) %>%
+      group_by(clone_id, V) %>%
+      tally() %>%
+      filter(n>1)
+  } else {
+    df <- data_vb_sub %>% 
+      group_by(clone_id, V) %>%
+      tally() %>%
+      filter(n>1)
+  }
+
   chord_order <- c(df %>% group_by(clone_id) %>% summarise(n=sum(n)) %>% arrange(desc(n)) %>% select(clone_id) %>% unlist(use.names = F),
                    df %>% group_by(V) %>% summarise(n=sum(n)) %>% arrange(desc(n)) %>% select(V) %>% unlist(use.names = F))
   chordDiagram(df, 

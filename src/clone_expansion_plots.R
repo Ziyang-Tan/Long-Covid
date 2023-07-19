@@ -10,14 +10,11 @@ library(ComplexHeatmap)
 # added type check for clone_id
 # version 1.2
 # some minor performance optimization
+# version 1.3
+# separate the table calculation for clone_expansion_donut as a new function
 #-----------
 
-
-clone_expansion_donut <- function(sample_name, clone_exp){
-  #sample_name = 'ISAC99_1' # for debug purpose
-  if (typeof(clone_exp$clone_id) != 'character'){
-    clone_exp <- clone_exp %>% mutate(clone_id = as.character(clone_id))
-  }
+get_clone_expansion_table <- function(sample_name, clone_exp){
   df <- clone_exp %>%
     filter(Sample_Name == sample_name) %>%
     mutate(clone_id = case_when(
@@ -47,6 +44,15 @@ clone_expansion_donut <- function(sample_name, clone_exp){
     ymax = cumsum(fraction),
     ymin = c(0, head(ymax, n=-1)),
     )
+  return(df)
+}
+
+clone_expansion_donut <- function(sample_name, clone_exp){
+  #sample_name = 'ISAC99_1' # for debug purpose
+  if (typeof(clone_exp$clone_id) != 'character'){
+    clone_exp <- clone_exp %>% mutate(clone_id = as.character(clone_id))
+  }
+  df <- get_clone_expansion_table(sample_name, clone_exp)
   breaks <- df %>% group_by(label) %>% summarise(label_frac=sum(fraction)) %>% 
     mutate(max = cumsum(label_frac), 
            min = c(0,head(max,n=-1)),
